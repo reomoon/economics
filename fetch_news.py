@@ -10,7 +10,7 @@ news_api_key = os.getenv('news_key')
 
 def fetch_news():
     # 월스트리트 저널에서 기사 가져오기
-    NEWS_URL = f"https://newsapi.org/v2/top-headlines?category=business&language=en&pageSize=5&apiKey={news_api_key}"
+    NEWS_URL = f"https://newsapi.org/v2/top-headlines?category=business&language=en&apiKey={news_api_key}"
 
     response = requests.get(NEWS_URL)
     news_data = response.json()
@@ -18,23 +18,27 @@ def fetch_news():
     news_list = []
 
     if "articles" in news_data and len(news_data["articles"]) > 0:
-        for article in news_data["articles"]:
-            news_title = article.get("title", "제목 없음")
-            
-            # `description` 필드를 기본으로 사용하고, `content`가 있으면 추가
-            description = article.get("description", "")
-            content = article.get("content", "")
+         for article in news_data["articles"]:
+            # 주식 관련 뉴스인지 확인
+            if "stock" in article.get("title", "").lower() or "market" in article.get("title", "").lower():
+                news_title = article.get("title", "제목 없음")
+                description = article.get("description", "")
+                content = article.get("content", "")
 
-            # description이 있으면 기본값으로 사용하고, content가 있으면 추가
-            if content and content not in description:
-                news_content = f"{description} {content}"
-            else:
-                news_content = description
+                # `content`가 None인 경우 제외
+                if not content:
+                    continue
 
-            news_url = article.get("url", "#")
-            news_image = article.get("urlToImage", None)
+                # description이 있으면 기본값으로 사용하고, content가 있으면 추가
+                if content and content not in description:
+                    news_content = f"{description} {content}"
+                else:
+                    news_content = description
 
-            news_list.append((news_title, news_content, news_url, news_image))
+                news_url = article.get("url", "#")
+                news_image = article.get("urlToImage", None)
+
+                news_list.append((news_title, news_content, news_url, news_image))
 
     return news_list
 
